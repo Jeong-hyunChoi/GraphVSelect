@@ -1,0 +1,168 @@
+body {
+  font-family: 'Noto Sans', sans-serif;
+}
+
+.publication-title,
+.publication-authors {
+  font-family: 'Google Sans', sans-serif;
+}
+
+.publication-venue {
+  color: #555;
+  font-weight: bold;
+}
+
+.publication-authors a {
+  color: hsl(204, 86%, 53%) !important;
+}
+
+.publication-authors a:hover {
+  text-decoration: underline;
+}
+
+.author-block {
+  display: inline-block;
+}
+
+.eql-cntrb {
+  color: #666;
+  margin-top: 0.4rem;
+}
+
+.link-block {
+  display: inline-block;
+}
+
+.link-block .button {
+  margin: 5px 3px;
+}
+
+.button[disabled] {
+  cursor: default;
+}
+
+/* ---------- figures ---------- */
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+figcaption {
+  font-size: 0.92rem;
+  color: #4a4a4a;
+  text-align: justify;
+  margin-top: 0.6rem;
+  line-height: 1.45;
+}
+
+.wide-figure {
+  margin: 1rem 0 1.5rem 0;
+}
+
+.col-figure {
+  margin: 0.5rem 0 1rem 0;
+}
+
+.col-figure img {
+  max-width: 560px;
+}
+
+.teaser-figure img {
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+}
+
+.teaser-line {
+  margin-top: 1.2rem;
+  color: #363636;
+}
+
+.method-columns,
+.analysis-columns {
+  margin-top: 1.5rem;
+}
+
+.method-columns .title.is-4 {
+  margin-bottom: 0.8rem;
+}
+
+/* ---------- tables ---------- */
+.table-title {
+  margin-top: 1.8rem;
+  margin-bottom: 0.6rem;
+}
+
+.results-table {
+  font-size: 0.9rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.results-table th,
+.results-table td {
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.results-table th:first-child,
+.results-table td:first-child {
+  text-align: left;
+}
+
+.results-table thead th {
+  background: #f5f5f5;
+  border-bottom: 2px solid #dbdbdb;
+}
+
+.results-table .ours-row td {
+  background: #eef5ff;
+}
+
+.refl4-table {
+  width: auto;
+}
+
+.table-note {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: -0.4rem;
+  margin-bottom: 1.2rem;
+}
+
+/* ---------- misc ---------- */
+.legend-sgrec { color: #d62728; font-weight: 600; }
+.legend-ga    { color: #e07b1a; font-weight: 600; }
+.legend-ours  { color: #1f5fd6; font-weight: 600; }
+
+details.more-examples {
+  margin: 0.5rem 0 1rem 0;
+}
+
+details.more-examples summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: hsl(204, 86%, 45%);
+  margin-bottom: 0.5rem;
+}
+
+#BibTeX pre {
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+@media screen and (max-width: 768px) {
+  .publication-title {
+    font-size: 1.6rem !important;
+  }
+  .col-figure img {
+    max-width: 100%;
+  }
+}

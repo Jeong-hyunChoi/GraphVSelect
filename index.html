@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="GraphVSelect: a training-free framework for zero-shot referring expression comprehension that verifies a query-conditioned scene graph before jointly selecting among candidates with a confidence-aware gate.">
+  <meta property="og:title" content="GraphVSelect: Verified Graph-guided Selection for Zero-shot Referring Expression Comprehension"/>
+  <meta property="og:description" content="Training-free zero-shot REC via hierarchically verified scene graphs and confidence-aware structured selection."/>
+  <meta property="og:url" content="https://jeong-hyunchoi.github.io/GraphVSelect/"/>
+  <meta property="og:image" content="static/images/figure1b.png"/>
+  <meta name="keywords" content="referring expression comprehension, zero-shot, scene graph, vision-language models, visual grounding">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>GraphVSelect</title>
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+</head>
+<body>
+
+<!-- ======================= Hero ======================= -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-2 publication-title">GraphVSelect: Verified Graph-guided Selection for<br>Zero-shot Referring Expression Comprehension</h1>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><a href="https://github.com/Jeong-hyunChoi" target="_blank">Jeonghyun Choi</a><sup>1*</sup>,</span>
+            <span class="author-block"><a href="https://weiyao1996.github.io/" target="_blank">Yao Wei</a><sup>2*</sup>,</span>
+            <span class="author-block">Hyungcheol Noh<sup>1</sup>,</span>
+            <span class="author-block"><a href="https://people.epfl.ch/andrea.cavallaro" target="_blank">Andrea Cavallaro</a><sup>3</sup>,</span>
+            <span class="author-block"><a href="https://cj-oh.github.io/" target="_blank">Changjae Oh</a><sup>2&dagger;</sup></span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <sup>1</sup>AI Research Team, Innodep Inc., South Korea<br>
+            <sup>2</sup>Queen Mary University of London, United Kingdom<br>
+            <sup>3</sup>&Eacute;cole Polytechnique F&eacute;d&eacute;rale de Lausanne (EPFL), Switzerland
+          </div>
+          <div class="is-size-6 eql-cntrb">
+            <sup>*</sup>Equal contribution &nbsp;&nbsp; <sup>&dagger;</sup>Corresponding author
+          </div>
+
+          <br>
+          <!-- TODO: replace with the final venue string once the decision is out. -->
+          <h2 class="title is-4 publication-venue">AAAI 2027 (under review)</h2>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- TODO: link the camera-ready / arXiv PDF when available. -->
+              <span class="link-block">
+                <button class="button is-normal is-rounded is-dark" disabled title="Coming soon">
+                  <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                  <span>Paper (coming soon)</span>
+                </button>
+              </span>
+              <span class="link-block">
+                <button class="button is-normal is-rounded is-dark" disabled title="Coming soon">
+                  <span class="icon"><i class="ai ai-arxiv"></i></span>
+                  <span>arXiv (coming soon)</span>
+                </button>
+              </span>
+              <span class="link-block">
+                <a href="https://github.com/Jeong-hyunChoi/GraphVSelect" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon"><i class="fab fa-github"></i></span>
+                  <span>Code</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Teaser ======================= -->
+<section class="hero section is-small">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered is-vcentered">
+      <div class="column is-half">
+        <figure class="teaser-figure">
+          <img src="static/images/figure1a.png" alt="Previous zero-shot REC methods: a noisy one-shot scene graph, or independent box-wise verification without comparison.">
+          <figcaption><b>(a) Previous REC methods.</b> A noisy one-shot scene graph leads to wrong localization; independent box-wise verification lacks explicit comparison.</figcaption>
+        </figure>
+      </div>
+      <div class="column is-half">
+        <figure class="teaser-figure">
+          <img src="static/images/figure1b.png" alt="GraphVSelect: verified scene graph construction followed by confidence-aware structured selection.">
+          <figcaption><b>(b) GraphVSelect (ours).</b> Objects and captions are verified before the graph is assembled; all candidates are then scored jointly and only ambiguous cases are re-answered.</figcaption>
+        </figure>
+      </div>
+    </div>
+    <h2 class="subtitle has-text-centered teaser-line">
+      <b>GraphVSelect</b> is a <b>training-free</b> zero-shot REC framework: verify the evidence first, then compare all candidates under the same verified relational context.
+    </h2>
+  </div>
+</section>
+
+<!-- ======================= Abstract ======================= -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Referring Expression Comprehension localizes an image region described by natural language. Existing zero-shot approaches typically rely on proposal matching or independent box-wise verification, providing limited explicit comparison among candidates. Recent scene graph-based methods introduce structured relational evidence, but construct the graph in a single pass, making subsequent reasoning sensitive to inaccurate objects. We present GraphVSelect, a training-free framework for reliable zero-shot REC through verified graph-guided selection. Our method hierarchically verifies candidates before constructing a query-conditioned scene graph. It then jointly ranks all candidates under the verified relational context and selectively re-examines ambiguous predictions using the top-1/top-2 likelihood margin. Across RefCOCO/+/g and the challenging Ref-L4 with multiple vision-language models, GraphVSelect improves over the strongest zero-shot baseline by a relative 15.0% and 16.6%, respectively, with the largest gains on long, compositionally complex expressions.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Method ======================= -->
+<section class="hero section is-small">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <div class="content">
+          <h2 class="title is-3">Method</h2>
+          <div class="has-text-justified">
+            <p>
+              Given an image and a referring expression, GraphVSelect localizes the described object with two stages, both built on frozen off-the-shelf models and requiring no REC-specific training. <b>Hierarchically Verified Scene Graph Construction</b> verifies and repairs object proposals and their descriptions before assembling a query-conditioned scene graph. <b>Confidence-Aware Structured Selection</b> then scores all candidates jointly under this graph and re-answers only the ambiguous cases.
+            </p>
+          </div>
+        </div>
+        <figure class="wide-figure">
+          <img src="static/images/figure2.png" alt="Overview of GraphVSelect: detect, caption and relate with verify-repair-re-verify loops, then list-wise scoring with a calibrated top-2 margin gate.">
+          <figcaption><b>Overview of GraphVSelect.</b> All components are frozen. The method first verifies object proposals and captions to construct a reliable scene graph, and then jointly ranks all candidates under the graph context. A calibrated top-2 margin accepts confident predictions and triggers pairwise re-answering for ambiguous cases, producing a single output box.</figcaption>
+        </figure>
+
+        <div class="columns is-centered method-columns">
+          <div class="column is-half">
+            <h3 class="title is-4">Hierarchically Verified Scene Graph Construction</h3>
+            <div class="content has-text-justified">
+              <p>
+                Prior graph-based REC builds the scene graph in a single generation pass and treats it as fixed evidence, so a spurious box or an under-informative caption silently becomes part of the reasoning context. We instead treat construction as <em>verify-and-repair</em>.
+              </p>
+              <p>
+                <b>Object-level verification.</b> An open-vocabulary detector proposes query-relevant regions. Each proposal is marked in the full image and a frozen VLM is asked whether it depicts the object concept; low-confidence proposals are removed, and if a query-relevant category ends up unrepresented the detector is re-queried and only verified regions are added back. The same signal prunes false positives and drives targeted re-detection.
+              </p>
+              <p>
+                <b>Caption-level verification.</b> A caption produced from the crop alone often omits what separates an object from its same-category siblings. For each verified object we generate an initial caption and five alternatives conditioned on the crop and a spatial descriptor, score them with two listener prompts, and keep the most visually grounded and discriminative one. Verified nodes are joined with query-relevant pairwise relations and a global caption into a scene graph serialized as id-indexed JSON.
+              </p>
+            </div>
+            <figure class="col-figure">
+              <img src="static/images/figure3.png" alt="Verified scene graph construction: object level, caption level, and graph level.">
+              <figcaption>Verified scene graph construction. A VLM verifies each generation at the object and caption levels, cutting spurious objects, restoring missing ones, and rewriting captions with listeners. Relations and a global caption are then generated over the verified objects.</figcaption>
+            </figure>
+          </div>
+
+          <div class="column is-half">
+            <h3 class="title is-4">Confidence-Aware Structured Selection</h3>
+            <div class="content has-text-justified">
+              <p>
+                Box-wise verification asks an independent True/False question per candidate. Set-level predicates such as "middle" or "closest" are undefined for a single isolated region, and independent bounded confidences saturate, leaving several candidates equally "true". We instead score all candidates within a single query over the shared graph.
+              </p>
+              <p>
+                <b>List-wise constrained scoring.</b> Every candidate of the target category is marked with its id on one image. The VLM receives the marked image, the query and the serialized graph, and the answer is constrained to the valid id tokens so that each candidate's first-token log-likelihood yields a full ranking with no unparseable outputs.
+              </p>
+              <p>
+                <b>Confidence gate and re-answering.</b> The top-1/top-2 log-likelihood margin measures ambiguity. A threshold is set to the 30% quantile of margins on an unlabeled calibration set, so no ground truth is needed. Confident cases keep the top-1 answer; low-margin cases are re-asked between the top two candidates in both presentation orders, and the summed log-likelihoods cancel the answer-slot bias exactly. On average this costs 1.53 VLM calls per expression.
+              </p>
+            </div>
+            <figure class="col-figure">
+              <img src="static/images/figure4.png" alt="Confidence-aware structured selection: list-wise scoring, calibrated gate, and pairwise re-answer in both orders.">
+              <figcaption>Confidence-aware structured selection. All candidates are scored in a list-wise query over the verified scene graph, yielding a ranking and a top-2 margin. A threshold calibrated on held-out records keeps confident round-1 answers and re-answers the ambiguous minority between the top-2, in both orders.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Results ======================= -->
+<section class="hero section is-small is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <div class="content">
+          <h2 class="title is-3">Results</h2>
+          <div class="has-text-justified">
+            <p>
+              GraphVSelect is evaluated on RefCOCO, RefCOCO+ and RefCOCOg and on the more challenging Ref-L4, on all official splits and without any task-specific training. Qwen3-VL-8B-Instruct is the default backbone; LLaVA-OneVision-7B and Molmo-7B-D are also evaluated to assess generalization across backbones. All numbers come from a single deterministic run.
+            </p>
+          </div>
+
+          <h3 class="title is-5 table-title">Table 1. Comparison with zero-shot REC methods on RefCOCO/+/g (Acc@0.5, %).</h3>
+          <div class="table-container">
+            <table class="table is-narrow is-hoverable is-fullwidth results-table">
+              <thead>
+                <tr>
+                  <th rowspan="2">Method</th>
+                  <th colspan="3">RefCOCO</th>
+                  <th colspan="3">RefCOCO+</th>
+                  <th colspan="2">RefCOCOg</th>
+                  <th rowspan="2">Avg</th>
+                </tr>
+                <tr>
+                  <th>val</th><th>testA</th><th>testB</th>
+                  <th>val</th><th>testA</th><th>testB</th>
+                  <th>val</th><th>test</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>ReCLIP</td><td>45.78</td><td>46.10</td><td>47.07</td><td>47.87</td><td>50.10</td><td>45.10</td><td>59.33</td><td>59.01</td><td>50.05</td></tr>
+                <tr><td>RedCircle</td><td>49.80</td><td>58.60</td><td>39.90</td><td>55.30</td><td>63.90</td><td>45.40</td><td>59.40</td><td>58.90</td><td>53.90</td></tr>
+                <tr><td>FGVP</td><td>59.60</td><td>65.00</td><td>52.00</td><td>60.00</td><td>66.80</td><td>49.70</td><td>63.30</td><td>63.40</td><td>59.97</td></tr>
+                <tr><td>GroundingVLP</td><td>59.05</td><td>69.21</td><td>48.71</td><td>61.80</td><td>70.56</td><td>50.97</td><td>69.08</td><td>68.98</td><td>62.29</td></tr>
+                <tr><td>SGREC</td><td>66.78</td><td>71.38</td><td>64.14</td><td>57.17</td><td>61.49</td><td>53.43</td><td>73.28</td><td>72.97</td><td>65.08</td></tr>
+                <tr><td>GroundingAgent</td><td>67.10</td><td>73.30</td><td>60.10</td><td>62.40</td><td>67.60</td><td>53.80</td><td>67.90</td><td>68.80</td><td>65.10</td></tr>
+                <tr class="ours-row"><td>GraphVSelect (Ours)</td><td><b>78.99</b></td><td><b>80.76</b></td><td><b>70.33</b></td><td><b>70.38</b></td><td><b>78.03</b></td><td><b>62.40</b></td><td><b>79.62</b></td><td><b>78.62</b></td><td><b>74.89</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 class="title is-5 table-title">Table 2. Comparison with recent zero-shot REC methods on Ref-L4 (%).</h3>
+          <div class="table-container">
+            <table class="table is-narrow is-hoverable results-table refl4-table">
+              <thead>
+                <tr>
+                  <th rowspan="2">Method</th>
+                  <th colspan="4">Val+Test</th>
+                  <th>Val</th>
+                  <th>Test</th>
+                </tr>
+                <tr>
+                  <th>Acc<sub>0.5</sub></th><th>Acc<sub>0.75</sub></th><th>Acc<sub>0.9</sub></th><th>mAcc</th>
+                  <th>mAcc</th><th>mAcc</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>SGREC<sup>&dagger;</sup></td><td>68.43</td><td>58.27</td><td>28.29</td><td>51.71</td><td>52.13</td><td>51.53</td></tr>
+                <tr><td>GroundingAgent</td><td>59.81</td><td>52.33</td><td>40.42</td><td>49.91</td><td>50.71</td><td>49.57</td></tr>
+                <tr class="ours-row"><td>GraphVSelect (Ours)</td><td><b>71.45</b></td><td><b>62.79</b></td><td><b>50.46</b></td><td><b>60.30</b></td><td><b>60.31</b></td><td><b>60.30</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="table-note"><sup>&dagger;</sup> Our re-implementation due to the lack of official code. mAcc is averaged over ten IoU thresholds from 0.50 to 0.95, following the official Ref-L4 evaluator.</p>
+
+          <div class="has-text-justified">
+            <p>
+              GraphVSelect achieves the best result on every RefCOCO/+/g split, with an average accuracy of 74.89, outperforming the strongest baseline by 9.8 points. On Ref-L4 it improves mAcc by 8.59 points over SGREC and 10.39 over GroundingAgent, and the gain persists under the strictest threshold: +10.04 points at Acc<sub>0.9</sub> over the strongest baseline, indicating more precise localization rather than merely identifying the object.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Qualitative ======================= -->
+<section class="hero section is-small">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <div class="content">
+          <h2 class="title is-3">Qualitative Comparison</h2>
+          <div class="has-text-justified">
+            <p>
+              Both baselines are distracted by the nearby bench instead of the bronze boar, select a different dog despite the distinctive attributes in the query, and localize incorrect or over-sized regions for the bag of peppers. GraphVSelect resolves these contextual and same-category ambiguities and produces boxes closely aligned with the ground truth.
+            </p>
+          </div>
+        </div>
+        <figure class="wide-figure">
+          <img src="static/images/figure5.jpg" alt="Qualitative comparison on Ref-L4 test: SGREC in red, GroundingAgent in orange, GraphVSelect in blue, ground truth as dashed green.">
+          <figcaption>Qualitative results on Ref-L4 test. <span class="legend-sgrec">SGREC</span>, <span class="legend-ga">GroundingAgent</span>, <span class="legend-ours">GraphVSelect</span>; dashed green boxes denote ground truth.</figcaption>
+        </figure>
+        <details class="more-examples">
+          <summary>More examples on Ref-L4 test</summary>
+          <figure class="wide-figure">
+            <img src="static/images/figure8.jpg" alt="Additional qualitative results on Ref-L4 test.">
+            <figcaption>On long, compositionally complex expressions GraphVSelect grounds the correct referent, while the baselines are drawn to a wrong same-category object or to a distractor mentioned in the expression.</figcaption>
+          </figure>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Analysis ======================= -->
+<section class="hero section is-small is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <div class="content">
+          <h2 class="title is-3">Ablation and Analysis</h2>
+
+          <h3 class="title is-5 table-title">Table 3. Ablation of verification levels (Acc@0.5, %).</h3>
+          <div class="table-container">
+            <table class="table is-narrow is-hoverable is-fullwidth results-table">
+              <thead>
+                <tr>
+                  <th colspan="2">Verification</th>
+                  <th colspan="2">Qwen3-VL-8B</th>
+                  <th colspan="2">LLaVA-OV-7B</th>
+                  <th colspan="2">Molmo-7B</th>
+                </tr>
+                <tr>
+                  <th>Object</th><th>Caption</th>
+                  <th>RefCOCO/+/g</th><th>Ref-L4</th>
+                  <th>RefCOCO/+/g</th><th>Ref-L4</th>
+                  <th>RefCOCO/+/g</th><th>Ref-L4</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td></td><td></td><td>73.7</td><td>68.7</td><td>62.1</td><td>53.9</td><td>58.0</td><td>48.5</td></tr>
+                <tr><td>&#10003;</td><td></td><td>76.2</td><td>70.8</td><td>68.7</td><td>59.5</td><td>65.3</td><td>55.2</td></tr>
+                <tr><td></td><td>&#10003;</td><td>74.7</td><td>69.6</td><td>63.4</td><td>55.0</td><td>60.0</td><td>49.2</td></tr>
+                <tr class="ours-row"><td>&#10003;</td><td>&#10003;</td><td><b>76.7</b></td><td><b>71.5</b></td><td><b>69.2</b></td><td><b>60.0</b></td><td><b>66.3</b></td><td><b>55.9</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="has-text-justified">
+            <p>
+              Object-level verification alone gives consistent gains on every dataset, up to 7.3 points on RefCOCO/+/g and 6.7 on Ref-L4 for the weaker backbones. Caption-level verification alone is modest, but the complete hierarchy is best: object verification corrects the candidate set, while caption verification supplies the descriptions that separate similar candidates.
+            </p>
+          </div>
+
+          <h3 class="title is-5 table-title">Table 4. Box-wise verification vs. structured selection, with and without scene graph context (Acc@0.5, %).</h3>
+          <div class="table-container">
+            <table class="table is-narrow is-hoverable is-fullwidth results-table">
+              <thead>
+                <tr>
+                  <th>Inference</th>
+                  <th>Scene Graph</th>
+                  <th colspan="2">Qwen3-VL-8B</th>
+                  <th colspan="2">LLaVA-OV-7B</th>
+                  <th colspan="2">Molmo-7B</th>
+                </tr>
+                <tr>
+                  <th></th><th></th>
+                  <th>RefCOCO/+/g</th><th>Ref-L4</th>
+                  <th>RefCOCO/+/g</th><th>Ref-L4</th>
+                  <th>RefCOCO/+/g</th><th>Ref-L4</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td rowspan="2">Box-wise Verification</td><td></td><td>75.5</td><td>69.1</td><td>63.5</td><td>48.9</td><td>47.5</td><td>37.1</td></tr>
+                <tr><td>&#10003;</td><td>75.8</td><td>67.0</td><td>62.8</td><td>49.9</td><td>62.5</td><td>48.5</td></tr>
+                <tr><td rowspan="2">Structured Selection</td><td></td><td>67.1</td><td>56.5</td><td>46.2</td><td>31.6</td><td>38.2</td><td>24.2</td></tr>
+                <tr class="ours-row"><td>&#10003;</td><td><b>76.7</b></td><td><b>71.5</b></td><td><b>69.2</b></td><td><b>60.0</b></td><td><b>66.3</b></td><td><b>55.9</b></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="has-text-justified">
+            <p>
+              Without the graph, structured selection performs poorly: list-wise comparison depends on relational evidence. With it, the full setting improves by 9.6 to 28.1 points on RefCOCO/+/g and 15.0 to 31.7 points on Ref-L4. Adding the same graph to box-wise verification yields mixed results for the stronger backbones, so scene graph evidence is exploited most consistently when it is shared across candidates during joint selection rather than supplied to separate binary decisions.
+            </p>
+          </div>
+        </div>
+
+        <div class="columns is-centered analysis-columns">
+          <div class="column is-half">
+            <figure class="col-figure">
+              <img src="static/images/figure6.png" alt="Confidence gate ablation on Ref-L4 test: mAcc plateaus beyond alpha = 0.3 while the number of VLM calls grows linearly.">
+              <figcaption><b>Confidence gate ablation</b> on Ref-L4 test. mAcc (left axis) and VLM calls per expression (right axis) against the gate quantile &alpha;. Re-answering the lowest-margin cases lifts mAcc by 1.1 over no gating; accuracy is flat for &alpha; in [0.3, 0.7] while cost keeps rising, so we adopt &alpha; = 0.3 at 1.53 calls per expression.</figcaption>
+            </figure>
+          </div>
+          <div class="column is-half">
+            <figure class="col-figure">
+              <img src="static/images/figure10.png" alt="Round-1 accuracy rises monotonically with the top-2 log-probability margin percentile; the bottom 30% is gated.">
+              <figcaption><b>The margin predicts accuracy</b> (Qwen3-VL-8B, Ref-L4 test). Round-1 Acc@0.5 rises monotonically across top-2 margin deciles from 39% to 95% (AUROC 0.76). The bottom-30% margin records (shaded) concentrate the errors and are exactly those the gate re-answers.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Mechanism gallery ======================= -->
+<section class="hero section is-small">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <div class="content">
+          <h2 class="title is-3">What Each Mechanism Fixes</h2>
+          <div class="has-text-justified">
+            <p>
+              Candidate augmentation recovers targets missed by the initial detector. Caption rewriting produces discriminative descriptions for similar candidates. Confidence-aware re-answering revisits ambiguous initial predictions. List-wise selection compares all candidates under a shared graph context, resolving cases in which independent box-wise verification picks the wrong object.
+            </p>
+          </div>
+        </div>
+        <figure class="wide-figure">
+          <img src="static/images/figure9.jpg" alt="Qualitative ablation: augment rescue, caption rewrite, gate re-answer, and list-wise versus box-wise selection.">
+          <figcaption>Qualitative ablation on Ref-L4 test. <span class="legend-sgrec">Red</span> denotes the ablated prediction, <span class="legend-ours">blue</span> the full model, and dashed green the ground truth. For the last two columns, red is the initial top-1 prediction and the box-wise verification result, respectively.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= Limitations ======================= -->
+<section class="hero section is-small is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full">
+        <div class="content">
+          <h2 class="title is-3">Failure Cases and Limitations</h2>
+          <div class="has-text-justified">
+            <p>
+              Among all 9,111 incorrect predictions on Ref-L4 test, 49.6% are <em>detection misses</em>, where the target never enters the candidate set, and 50.4% are <em>selection errors</em>, where the correct candidate is available but another one is chosen. GraphVSelect therefore depends on proposal recall and on the relational reasoning ability of the VLM, and since the prediction is selected directly from the candidate set without box refinement, inaccurate proposals also limit localization quality. Some remaining low-IoU predictions arise from ambiguous expressions for which the benchmark provides only one annotated box.
+            </p>
+          </div>
+        </div>
+        <div class="columns is-centered analysis-columns">
+          <div class="column is-half">
+            <figure class="col-figure">
+              <img src="static/images/figure7.jpg" alt="Failure cases: a detection miss on an occluded scooter and a selection error choosing the laptop instead of the man.">
+              <figcaption><b>Failure cases on Ref-L4 test.</b> Left: the occluded scooter is never recovered as a candidate (detection miss). Right: the man is available but the model selects the green laptop mentioned in the expression (selection error). Dashed green: ground truth; solid: prediction.</figcaption>
+            </figure>
+          </div>
+          <div class="column is-half">
+            <figure class="col-figure">
+              <img src="static/images/figure11.jpg" alt="Ambiguous ground truth examples on RefCOCO where more than one object satisfies the expression.">
+              <figcaption><b>Ambiguous ground truth on RefCOCO/+/g.</b> The expression admits more than one valid grounding, so IoU against the single annotated box (dashed green) penalizes an otherwise defensible prediction (orange).</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= BibTeX ======================= -->
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3 has-text-centered">BibTeX</h2>
+    <!-- TODO: update once the paper is accepted / posted. -->
+    <pre><code>@inproceedings{choi2027graphvselect,
+  title     = {GraphVSelect: Verified Graph-guided Selection for Zero-shot Referring Expression Comprehension},
+  author    = {Choi, Jeonghyun and Wei, Yao and Noh, Hyungcheol and Cavallaro, Andrea and Oh, Changjae},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence (AAAI)},
+  year      = {2027}
+}</code></pre>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>, which was adopted from <a href="https://nerfies.github.io" target="_blank">Nerfies</a>.
+            <br>This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
