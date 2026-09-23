@@ -1,0 +1,18 @@
+# Core inference stack (see docker/Dockerfile for the exact, tested environment).
+vllm==0.11.0
+transformers>=4.55,<5.0
+qwen-vl-utils==0.0.14
+mistral_common[audio,image]>=1.8.2,<1.9
+# Pipeline dependencies
+loguru
+PyYAML
+Pillow
+pandas
+pyarrow          # read the Ref-L4 parquet in scripts/prepare_refl4.py
+pycocotools
+opencv-python-headless
+matplotlib
+accelerate
+spacy
+nltk
+# spaCy model (install after spacy):  python -m spacy download en_core_web_sm
