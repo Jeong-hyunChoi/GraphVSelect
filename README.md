@@ -65,7 +65,6 @@ Qwen3-VL-8B-Instruct backbone, single deterministic run. Full tables are on the
 @inproceedings{choi2027graphvselect,
   title     = {GraphVSelect: Verified Graph-guided Selection for Zero-shot Referring Expression Comprehension},
   author    = {Choi, Jeonghyun and Wei, Yao and Noh, Hyungcheol and Cavallaro, Andrea and Oh, Changjae},
-  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence (AAAI)},
   year      = {2027}
 }
 ```
